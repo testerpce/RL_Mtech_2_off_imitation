@@ -21,7 +21,7 @@ class Imitator:
                  replay_buffer_size=50000,expert_buffer=None,
                  expert_dir='ppo2_BipedalWalkerv2.npz',
                  random_seed=999,summary_dir='./logs',
-                 max_episode_len=1000):
+                 max_episode_len=1000,buffer_size=100000):
         self.env=env
         self.actor=actor
         self.critic=critic
@@ -32,6 +32,7 @@ class Imitator:
         self.actor_bn=actor_bn
         self.critic_bn=critic_bn
         self.batch_size=batch_size
+        self.buffer_size=buffer_size
         self.random_seed=random_seed
         self.max_episode_len=max_episode_len
         self.tensorboard_log=tensorboard_log
@@ -66,22 +67,22 @@ class Imitator:
                                       critic_bn=self.critic_bn)
         
         if self.replay_buffer is None:
-            self.replay_buffer=ReplayBuffer(buffer_size=self.batch_size,
+            self.replay_buffer=ReplayBuffer(buffer_size=self.buffer_size,
                                             random_seed=self.random_seed)
         
         if self.expert_buffer is None:
             assert(self.expert_dir is not None)
             
-            self.expert_buffer=ReplayBuffer(buffer_size=self.batch_size,
+            self.expert_buffer=ReplayBuffer(buffer_size=self.buffer_size,
                                             random_seed=self.random_seed)
             data=np.load(self.expert_dir)
             #Ignore the terminal part it says episode starts when replay 
             #buffer is actually storing whether it is terminal or not
-            for i in range(len(data['obs'])-1):
+            for i in range(128):
                 s=data['obs'][i]
                 a=data['actions'][i]
                 r=data['rewards'][i]
-                t= data['episode_starts'][i+1]
+                t= 0#data['episode_starts'][i+1]
                 s2=data['obs'][i+1]
                 self.expert_buffer.add(s,a,r,t,s2)
                 
@@ -134,7 +135,7 @@ class Imitator:
                     expert_target_q=self.critic.predict_target(expert_s2_batch,self.actor.predict_target(expert_s2_batch))
                     
                     predicted_q_value,expert_q_value,_=self.critic.train(expert_s_batch,expert_a_batch,s_batch,a_batch,target_q,expert_target_q)
-                    
+                    print("predicted_q_value = ",predicted_q_value,"exper_q_value",expert_q_value)
                     
                     ep_ave_max_q+=np.amax(predicted_q_value)
                     ep_ave_max_q_expert+=np.amax(expert_q_value)
