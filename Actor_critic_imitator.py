@@ -234,7 +234,7 @@ class CriticNetwork(object):
             
             #linear layer connected to one output representing Q(s,a)
             w_init=tflearn.initializations.uniform(minval=-0.003,maxval=0.003)
-            out=tflearn.fully_connected(net,1,weights_init=w_init)
+            out=tflearn.fully_connected(net,1,weights_init=w_init,activation='sigmoid')
             
         return inputs,action,out
     

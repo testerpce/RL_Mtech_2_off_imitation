@@ -8,6 +8,8 @@ Created on Sun May 12 23:57:35 2019
 import tensorflow as tf
 import numpy as np
 
+
+
 class OrnsteinUhlenbeckActionNoise:
     def __init__(self,mu,sigma=0.3,theta=0.15,dt=1e-2,x0=None):
         self.theta=theta
@@ -40,3 +42,4 @@ def build_summaries():
     summary_ops=tf.summary.merge_all()
     
     return summary_ops,summary_vars
+
